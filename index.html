@@ -90,6 +90,17 @@
       left: -100px;
       top: -100px;
     }
+    #hint {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(30,50,80,0.75);
+      font-size: 15px;
+      font-weight: 600;
+      pointer-events: none;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
   </style>
 </head>
 <body>
@@ -99,6 +110,7 @@
     <div class="birds" id="birdsRemaining">Birds: 0</div>
     <div class="levelnum" id="levelNum">Level: 1</div>
   </div>
+  <div id="hint">🐦 Drag bird DOWN to fire UP &nbsp;|&nbsp; Drag LEFT to fire RIGHT</div>
 
   <div id="overlay">
     <div id="panel">
@@ -128,8 +140,8 @@
       const pigRadius = 20;
       const restitutionGround = 0.5;
       const restitutionBlock = 0.45;
-      const maxPull = 110;
-      const slingshotClickRadius = 110;
+      const maxPull = 130;
+      const slingshotClickRadius = 130;
       const sling = { x: 170, y: 0 };
 
       let width = 0;
@@ -148,7 +160,7 @@
 
       const levels = [
         {
-          birds: 4,
+          birds: 6,
           blocks: [
             { x: 760, y: 0, w: 26, h: 120 },
             { x: 860, y: 0, w: 26, h: 120 },
@@ -159,12 +171,11 @@
           ],
           pigs: [
             { x: 810, y: 0 },
-            { x: 1015, y: 0 },
-            { x: 930, y: 0 }
+            { x: 1015, y: 0 }
           ]
         },
         {
-          birds: 5,
+          birds: 7,
           blocks: [
             { x: 730, y: 0, w: 24, h: 130 },
             { x: 780, y: 0, w: 24, h: 130 },
@@ -184,7 +195,7 @@
           ]
         },
         {
-          birds: 5,
+          birds: 7,
           blocks: [
             { x: 700, y: 0, w: 22, h: 140 },
             { x: 750, y: 0, w: 22, h: 140 },
@@ -205,7 +216,7 @@
           ]
         },
         {
-          birds: 6,
+          birds: 8,
           blocks: [
             { x: 680, y: 0, w: 20, h: 180 },
             { x: 820, y: 0, w: 20, h: 180 },
@@ -227,7 +238,7 @@
           ]
         },
         {
-          birds: 7,
+          birds: 9,
           blocks: [
             { x: 620, y: 0, w: 20, h: 100 },
             { x: 670, y: 0, w: 20, h: 100 },
@@ -265,7 +276,7 @@
         canvas.width = width;
         canvas.height = height;
         groundY = Math.floor(height * 0.84);
-        sling.y = groundY - 55;
+        sling.y = groundY - 80;
         if (currentBird && currentBird.state === 'ready') {
           currentBird.x = sling.x;
           currentBird.y = sling.y;
@@ -302,7 +313,7 @@
           vy: 0,
           angle: 0,
           av: 0,
-          hp: Math.max(2, Math.round((b.w + b.h) / 36)),
+          hp: Math.max(1, Math.round((b.w + b.h) / 60)),
           alive: true,
           restingFrames: 0
         }));
@@ -380,7 +391,7 @@
         if (distSq > b.r * b.r) return;
 
         const speed = Math.hypot(b.vx, b.vy);
-        block.hp -= speed > 7 ? 2 : 1;
+        block.hp -= speed > 5 ? 2 : 1;
         if (block.hp <= 0) {
           block.alive = false;
           score += 500;
@@ -420,8 +431,6 @@
             pig.alive = false;
             score += 1000;
             updateHud();
-            b.vx *= 0.86;
-            b.vy *= 0.86;
           }
         }
 
@@ -431,7 +440,7 @@
           b.restingFrames = 0;
         }
 
-        if (b.restingFrames > 70 || b.x > width + 200 || b.y > height + 150) {
+        if (b.restingFrames > 70 || b.x > width + 400 || b.y > height + 150 || b.y < -300) {
           currentBird = null;
           nextBird();
         }
@@ -576,8 +585,8 @@
       function drawSlingshot() {
         ctx.lineCap = 'round';
         ctx.fillStyle = '#7d4a21';
-        ctx.fillRect(sling.x - 34, groundY - 95, 12, 95);
-        ctx.fillRect(sling.x + 22, groundY - 95, 12, 95);
+        ctx.fillRect(sling.x - 34, groundY - 120, 12, 120);
+        ctx.fillRect(sling.x + 22, groundY - 120, 12, 120);
 
         const anchorBack = { x: sling.x - 22, y: sling.y - 5 };
         const anchorFront = { x: sling.x + 28, y: sling.y - 5 };
@@ -686,13 +695,13 @@
         const vy = pullY * launchPower;
 
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        for (let i = 1; i <= 24; i++) {
+        for (let i = 1; i <= 30; i++) {
           const t = i * 5;
           const tx = currentBird.x + vx * t;
           const ty = currentBird.y + vy * t + 0.5 * gravity * t * t;
-          if (ty > groundY) break;
+          if (ty > groundY + 50) break;
           ctx.beginPath();
-          ctx.arc(tx, ty, Math.max(2, 5 - i * 0.2), 0, Math.PI * 2);
+          ctx.arc(tx, ty, Math.max(2, 5 - i * 0.15), 0, Math.PI * 2);
           ctx.fill();
         }
       }
