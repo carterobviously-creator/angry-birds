@@ -100,7 +100,7 @@
     </div>
   </div>
 
-  <div id="yt-player"></div>
+  <div id="yt-player" aria-hidden="true"></div>
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     (() => {
@@ -120,6 +120,7 @@
       const restitutionGround = 0.5;
       const restitutionBlock = 0.45;
       const maxPull = 95;
+      const slingshotClickRadius = 85;
       const sling = { x: 170, y: 0 };
 
       let width = 0;
@@ -659,7 +660,7 @@
       canvas.addEventListener('mousedown', (evt) => {
         if (gameState !== 'playing' || !currentBird || currentBird.state !== 'ready') return;
         const p = getCanvasPoint(evt);
-        if (distance(p.x, p.y, sling.x, sling.y) > 85) return;
+        if (distance(p.x, p.y, sling.x, sling.y) > slingshotClickRadius) return;
         isDragging = true;
         primeAudio();
       });
@@ -687,7 +688,7 @@
 
       panelButton.addEventListener('click', () => {
         if (gameState === 'win') {
-          resetLevel((levelIndex + 1) % levels.length);
+          resetLevel(levelIndex + 1);
         } else if (gameState === 'lose') {
           resetLevel(levelIndex);
         }
@@ -713,7 +714,8 @@
           },
           events: {
             onReady: (event) => {
-              event.target.mute();
+              const iframe = event.target.getIframe?.();
+              if (iframe) iframe.setAttribute('title', 'Background music player');
               event.target.playVideo();
             },
             onStateChange: (event) => {
