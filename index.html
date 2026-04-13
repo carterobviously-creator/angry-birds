@@ -41,6 +41,13 @@
       right: 18px;
       font-size: 26px;
     }
+    .levelnum {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 26px;
+    }
     #overlay {
       position: fixed;
       inset: 0;
@@ -90,6 +97,7 @@
   <div id="hud">
     <div class="score" id="score">Score: 0</div>
     <div class="birds" id="birdsRemaining">Birds: 0</div>
+    <div class="levelnum" id="levelNum">Level: 1</div>
   </div>
 
   <div id="overlay">
@@ -108,19 +116,20 @@
       const ctx = canvas.getContext('2d');
       const scoreEl = document.getElementById('score');
       const birdsEl = document.getElementById('birdsRemaining');
+      const levelNumEl = document.getElementById('levelNum');
       const overlay = document.getElementById('overlay');
       const panelTitle = document.getElementById('panelTitle');
       const panelText = document.getElementById('panelText');
       const panelButton = document.getElementById('panelButton');
 
-      const gravity = 0.42;
-      const launchPower = 0.14;
+      const gravity = 0.55;
+      const launchPower = 0.32;
       const birdRadius = 16;
       const pigRadius = 20;
       const restitutionGround = 0.5;
       const restitutionBlock = 0.45;
-      const maxPull = 95;
-      const slingshotClickRadius = 85;
+      const maxPull = 110;
+      const slingshotClickRadius = 110;
       const sling = { x: 170, y: 0 };
 
       let width = 0;
@@ -172,6 +181,76 @@
             { x: 910, y: 0 },
             { x: 1110, y: 0 },
             { x: 1015, y: 0 }
+          ]
+        },
+        {
+          birds: 5,
+          blocks: [
+            { x: 700, y: 0, w: 22, h: 140 },
+            { x: 750, y: 0, w: 22, h: 140 },
+            { x: 725, y: 0, w: 100, h: 20 },
+            { x: 725, y: 0, w: 60, h: 20 },
+            { x: 900, y: 0, w: 22, h: 160 },
+            { x: 960, y: 0, w: 22, h: 160 },
+            { x: 930, y: 0, w: 110, h: 20 },
+            { x: 1100, y: 0, w: 80, h: 22 },
+            { x: 1100, y: 0, w: 22, h: 80 },
+            { x: 1150, y: 0, w: 22, h: 80 }
+          ],
+          pigs: [
+            { x: 725, y: 0 },
+            { x: 930, y: 0 },
+            { x: 1100, y: 0 },
+            { x: 1150, y: 0 }
+          ]
+        },
+        {
+          birds: 6,
+          blocks: [
+            { x: 680, y: 0, w: 20, h: 180 },
+            { x: 820, y: 0, w: 20, h: 180 },
+            { x: 750, y: 0, w: 160, h: 20 },
+            { x: 750, y: 0, w: 80, h: 18 },
+            { x: 980, y: 0, w: 20, h: 150 },
+            { x: 1100, y: 0, w: 20, h: 150 },
+            { x: 1040, y: 0, w: 140, h: 20 },
+            { x: 1040, y: 0, w: 80, h: 18 },
+            { x: 870, y: 0, w: 60, h: 20 },
+            { x: 870, y: 0, w: 20, h: 60 }
+          ],
+          pigs: [
+            { x: 750, y: 0 },
+            { x: 680, y: 0 },
+            { x: 820, y: 0 },
+            { x: 1040, y: 0 },
+            { x: 870, y: 0 }
+          ]
+        },
+        {
+          birds: 7,
+          blocks: [
+            { x: 620, y: 0, w: 20, h: 100 },
+            { x: 670, y: 0, w: 20, h: 100 },
+            { x: 645, y: 0, w: 80, h: 18 },
+            { x: 800, y: 0, w: 20, h: 130 },
+            { x: 850, y: 0, w: 20, h: 130 },
+            { x: 825, y: 0, w: 90, h: 20 },
+            { x: 825, y: 0, w: 50, h: 18 },
+            { x: 980, y: 0, w: 20, h: 170 },
+            { x: 1040, y: 0, w: 20, h: 170 },
+            { x: 1010, y: 0, w: 120, h: 22 },
+            { x: 1010, y: 0, w: 70, h: 20 },
+            { x: 1180, y: 0, w: 20, h: 110 },
+            { x: 1230, y: 0, w: 20, h: 110 },
+            { x: 1205, y: 0, w: 90, h: 20 }
+          ],
+          pigs: [
+            { x: 645, y: 0 },
+            { x: 825, y: 0 },
+            { x: 1010, y: 0 },
+            { x: 1010, y: 0 },
+            { x: 1205, y: 0 },
+            { x: 980, y: 0 }
           ]
         }
       ];
@@ -252,6 +331,7 @@
       function updateHud() {
         scoreEl.textContent = `Score: ${score}`;
         birdsEl.textContent = `Birds: ${birdsQueue.length + (currentBird ? 1 : 0)}`;
+        levelNumEl.textContent = `Level: ${levelIndex + 1}`;
       }
 
       function nextBird() {
@@ -456,7 +536,12 @@
         const alivePigs = pigs.filter((p) => p.alive).length;
         if (alivePigs === 0 && gameState === 'playing') {
           gameState = 'win';
-          showOverlay('Level Cleared!', `Score: ${score}`, 'Next Level');
+          const isLastLevel = levelIndex === levels.length - 1;
+          showOverlay(
+            isLastLevel ? '🎉 You Beat All Levels!' : 'Level Cleared!',
+            `Score: ${score}`,
+            isLastLevel ? 'Play Again' : 'Next Level'
+          );
           return;
         }
 
@@ -601,8 +686,8 @@
         const vy = pullY * launchPower;
 
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        for (let i = 1; i <= 18; i++) {
-          const t = i * 4;
+        for (let i = 1; i <= 24; i++) {
+          const t = i * 5;
           const tx = currentBird.x + vx * t;
           const ty = currentBird.y + vy * t + 0.5 * gravity * t * t;
           if (ty > groundY) break;
@@ -688,9 +773,10 @@
 
       panelButton.addEventListener('click', () => {
         if (gameState === 'win') {
-          resetLevel(levelIndex + 1);
+          const nextIdx = (levelIndex + 1) % levels.length;
+          resetLevel(nextIdx, nextIdx === 0);
         } else if (gameState === 'lose') {
-          resetLevel(levelIndex);
+          resetLevel(levelIndex, false);
         }
       });
 
